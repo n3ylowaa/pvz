@@ -1,0 +1,150 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+    background: #f5f5f5;
+    padding: 16px;
+}
+
+.app {
+    max-width: 500px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+header {
+    background: #6B8E23;
+    color: white;
+    padding: 20px 20px 10px;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 16px;
+}
+
+nav {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.nav-btn {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.nav-btn.active {
+    background: white;
+    color: #6B8E23;
+    font-weight: 500;
+}
+
+#content {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #333;
+}
+
+select, input, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+}
+
+.btn {
+    background: #6B8E23;
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    width: 100%;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: #556B2F;
+}
+
+.shift-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border-left: 4px solid #6B8E23;
+}
+
+.shift-card .date {
+    font-weight: bold;
+    color: #6B8E23;
+}
+
+.shift-card .place {
+    font-size: 18px;
+    margin: 4px 0;
+}
+
+.shift-card .time {
+    color: #666;
+    font-size: 14px;
+}
+
+.shift-card .earnings {
+    font-size: 20px;
+    font-weight: bold;
+    color: #2e7d32;
+    margin-top: 8px;
+}
+
+.report-card {
+    background: #f0f7ff;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.report-card .big-number {
+    font-size: 36px;
+    font-weight: bold;
+    color: #6B8E23;
+}
+
+.date-picker {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.date-picker input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 12px;
+}
