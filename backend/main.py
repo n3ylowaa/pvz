@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from datetime import date, datetime
 import sqlite3
 from typing import Optional, List
-from . import database
+import database
 
 app = FastAPI()
 
