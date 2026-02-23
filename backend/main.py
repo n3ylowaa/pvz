@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import date, datetime
-import sqlite3
+import psycopg2
 from typing import Optional, List
 import database
 
@@ -72,7 +72,7 @@ def get_workplaces():
     conn = database.get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT id, name FROM workplaces ORDER BY name")
-    workplaces = [{"id": row[0], "name": row[1]} for row in cursor.fetchall()]
+    workplaces = [{"id": row["id"], "name": row["name"]} for row in cursor.fetchall()]
     conn.close()
     return workplaces
 
@@ -82,12 +82,13 @@ def create_workplace(workplace: Workplace):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO workplaces (name) VALUES (?)",
+            "INSERT INTO workplaces (name) VALUES (%s) RETURNING id",
             (workplace.name,)
         )
+        new_id = cursor.fetchone()["id"]
         conn.commit()
-        return {"id": cursor.lastrowid, "name": workplace.name}
-    except sqlite3.IntegrityError:
+        return {"id": new_id, "name": workplace.name}
+    except psycopg2.errors.UniqueViolation:
         raise HTTPException(status_code=400, detail="Такое место уже существует")
     finally:
         conn.close()
@@ -100,12 +101,12 @@ def get_templates():
     templates = []
     for row in cursor.fetchall():
         templates.append({
-            "id": row[0],
-            "name": row[1],
-            "start_time": row[2],
-            "end_time": row[3],
-            "rate_type": row[4],
-            "rate_value": row[5]
+            "id": row["id"],
+            "name": row["name"],
+            "start_time": row["start_time"],
+            "end_time": row["end_time"],
+            "rate_type": row["default_rate_type"],
+            "rate_value": row["default_rate_value"]
         })
     conn.close()
     return templates
@@ -126,7 +127,8 @@ def create_shift(shift: ShiftCreate):
     cursor.execute("""
         INSERT INTO shifts 
         (workplace_id, shift_date, start_time, end_time, hours, rate_type, rate_value, earnings, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id
     """, (
         shift.workplace_id,
         shift.shift_date.isoformat(),
@@ -138,8 +140,8 @@ def create_shift(shift: ShiftCreate):
         earnings,
         shift.notes
     ))
+    shift_id = cursor.fetchone()["id"]
     conn.commit()
-    shift_id = cursor.lastrowid
     conn.close()
     return {"id": shift_id, "message": "Смена добавлена"}
 
@@ -157,7 +159,7 @@ def get_shifts(start_date: Optional[str] = None, end_date: Optional[str] = None)
     params = []
     
     if start_date and end_date:
-        query += " WHERE s.shift_date BETWEEN ? AND ?"
+        query += " WHERE s.shift_date BETWEEN %s AND %s"
         params = [start_date, end_date]
     
     query += " ORDER BY s.shift_date DESC, s.start_time"
@@ -166,16 +168,16 @@ def get_shifts(start_date: Optional[str] = None, end_date: Optional[str] = None)
     shifts = []
     for row in cursor.fetchall():
         shifts.append({
-            "id": row[0],
-            "workplace": row[1],
-            "date": row[2],
-            "start": row[3],
-            "end": row[4],
-            "hours": row[5],
-            "rate_type": row[6],
-            "rate_value": row[7],
-            "earnings": row[8],
-            "notes": row[9]
+            "id": row["id"],
+            "workplace": row["name"],
+            "date": row["shift_date"],
+            "start": row["start_time"],
+            "end": row["end_time"],
+            "hours": row["hours"],
+            "rate_type": row["rate_type"],
+            "rate_value": row["rate_value"],
+            "earnings": row["earnings"],
+            "notes": row["notes"]
         })
     conn.close()
     return shifts
@@ -192,7 +194,7 @@ def get_report(start_date: str, end_date: str):
             SUM(earnings) as total_earnings,
             AVG(earnings) as avg_per_shift
         FROM shifts
-        WHERE shift_date BETWEEN ? AND ?
+        WHERE shift_date BETWEEN %s AND %s
     """, [start_date, end_date])
     
     total = cursor.fetchone()
@@ -205,7 +207,7 @@ def get_report(start_date: str, end_date: str):
             SUM(s.earnings) as earnings
         FROM shifts s
         JOIN workplaces w ON s.workplace_id = w.id
-        WHERE s.shift_date BETWEEN ? AND ?
+        WHERE s.shift_date BETWEEN %s AND %s
         GROUP BY w.name
         ORDER BY earnings DESC
     """, [start_date, end_date])
@@ -213,19 +215,19 @@ def get_report(start_date: str, end_date: str):
     by_workplace = []
     for row in cursor.fetchall():
         by_workplace.append({
-            "name": row[0],
-            "shifts": row[1],
-            "hours": row[2],
-            "earnings": row[3]
+            "name": row["name"],
+            "shifts": row["shifts_count"],
+            "hours": row["hours"],
+            "earnings": row["earnings"]
         })
     conn.close()
     
     return {
         "period": f"{start_date} - {end_date}",
-        "total_shifts": total[0] or 0,
-        "total_hours": round(total[1] or 0, 1),
-        "total_earnings": round(total[2] or 0, 2),
-        "avg_per_shift": round(total[3] or 0, 2),
+        "total_shifts": total["total_shifts"] or 0,
+        "total_hours": round(total["total_hours"] or 0, 1),
+        "total_earnings": round(total["total_earnings"] or 0, 2),
+        "avg_per_shift": round(total["avg_per_shift"] or 0, 2),
         "by_workplace": by_workplace
     }
 
