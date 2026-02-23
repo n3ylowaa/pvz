@@ -1,13 +1,11 @@
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from urllib.parse import urlparse
-
-# Получаем строку подключения из переменной окружения
-DATABASE_URL = os.getenv('DATABASE_URL')
 
 def get_connection():
     """Подключение к PostgreSQL базе данных"""
+    DATABASE_URL = os.getenv('DATABASE_URL')
+    
     if not DATABASE_URL:
         raise Exception("DATABASE_URL не задан в переменных окружения")
     
@@ -86,7 +84,6 @@ def init_database():
 def init_db():
     """Функция для вызова при старте приложения"""
     try:
-        # Проверяем, существует ли база (создаётся автоматически при первом подключении)
         init_database()
         print("База данных инициализирована успешно")
     except Exception as e:
