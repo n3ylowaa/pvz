@@ -1,9 +1,12 @@
 {
-    "name": "Мои смены",
-    "short_name": "Смены",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#FFFFFF",
-    "theme_color": "#3399FF",
-    "icons": []
+  "background_color": "#f1f0f0",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Tracker PVZ",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Tracker",
+  "start_url": "/",
+  "theme_color": "#6b8e23",
+  "description": "Учёт смен для ПВЗ"
 }
